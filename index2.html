@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Árbol – Three.js</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: rgb(255, 255, 239);
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+
+      #ui {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 12px;
+        z-index: 10;
+      }
+      #ui button {
+        background: rgb(34, 34, 34);
+        color: rgb(255, 255, 239);
+        border: none;
+        padding: 8px 20px;
+        font-family: serif;
+        font-size: 13px;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        border-radius: 2px;
+        opacity: 0.85;
+        transition: opacity 0.2s;
+      }
+      #ui button:hover {
+        opacity: 1;
+      }
+      #ui button.active {
+        outline: 2px solid rgb(66, 53, 33);
+      }
+
+      #guide {
+        position: fixed;
+        top: 18px;
+        left: 20px;
+        font-family: serif;
+        font-size: 12px;
+        color: rgb(34, 34, 34);
+        opacity: 0.7;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="guide">
+      Puedes navegar por el espacio · Doble clic para cambiar cámara
+    </div>
+
+    <div id="ui">
+      <button id="btn0" class="active">Cámara 1</button>
+      <button id="btn1">Cámara 2</button>
+      <button id="btn2">Cámara 3</button>
+      <button id="btnAuto">⟳ Rotar</button>
+    </div>
+
+    <!-- Three.js from CDN -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+      // ─────────────────────────────────────────────
+      // SAMPLE TEXT  (replace with your own words)
+      // In the original sketch these come from sombra.txt
+      // Just add more words to this array as needed.
+      // ─────────────────────────────────────────────
+      const WORDS = [
+        "sombra",
+        "luz",
+        "rama",
+        "tierra",
+        "raíz",
+        "hoja",
+        "viento",
+        "silencio",
+        "tiempo",
+        "cielo",
+        "agua",
+        "noche",
+        "día",
+        "flor",
+        "fruto",
+        "semilla",
+        "bosque",
+        "árbol",
+        "crecer",
+        "caer",
+        "volar",
+        "morir",
+        "nacer",
+        "vivir",
+        "verde",
+        "oscuro",
+        "claro",
+        "suave",
+        "duro",
+        "largo",
+        "corto",
+        "alto",
+        "bajo",
+        "profundo",
+        "lento",
+        "rápido",
+        "frío",
+        "caliente",
+        "húmedo",
+        "seco",
+        "song",
+        "shadow",
+        "light",
+        "branch",
+        "earth",
+        "root",
+        "leaf",
+        "wind",
+        "silence",
+        "time",
+        "sky",
+        "water",
+        "night",
+        "day",
+        "flower",
+        "seed",
+      ];
+
+      function randomWord() {
+        return WORDS[Math.floor(Math.random() * WORDS.length)];
+      }
+
+      // ─────────────────────────────────────────────
+      // SCENE SETUP
+      // ─────────────────────────────────────────────
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xffffef); // rgb(255,255,239)
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // ─────────────────────────────────────────────
+      // THREE CAMERAS
+      // Coordinate mapping from p5 WEBGL → Three.js:
+      //   p5 X  →  Three X  (same)
+      //   p5 Y  →  Three -Y (p5 Y is flipped)
+      //   p5 Z  →  Three Z  (same)
+      // ─────────────────────────────────────────────
+      function makeCamera() {
+        return new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          5000,
+        );
+      }
+
+      const cameras = [makeCamera(), makeCamera(), makeCamera()];
+
+      // cam1 → p5: pos(-50,-120,300) lookAt(-50,-120,0)
+      cameras[0].position.set(-50, 120, 300);
+      cameras[0].lookAt(-50, 120, 0);
+
+      // cam2 → p5: pos(150,-250,170) lookAt(-30,-100,-10)
+      cameras[1].position.set(150, 250, 170);
+      cameras[1].lookAt(-30, 100, -10);
+
+      // cam3 → p5: pos(80,0,240) lookAt(-60,-190,-100)
+      cameras[2].position.set(80, 0, 240);
+      cameras[2].lookAt(-60, 190, -100);
+
+      let activeCameraIndex = 0;
+      function activeCamera() {
+        return cameras[activeCameraIndex];
+      }
+
+      // ─────────────────────────────────────────────
+      // ORBIT CONTROLS  (attached to renderer DOM)
+      // We create one set of controls and reassign on camera switch.
+      // ─────────────────────────────────────────────
+      let controls = new OrbitControls(cameras[0], renderer.domElement);
+      controls.enableDamping = true;
+
+      function switchCamera(idx) {
+        activeCameraIndex = idx;
+        controls.object = cameras[idx];
+        // Reset controls target to scene center so orbit feels natural
+        controls.target.set(0, 100, 0);
+        controls.update();
+        document.querySelectorAll('#ui button[id^="btn"]').forEach((b, i) => {
+          b.classList.toggle("active", i === idx);
+        });
+      }
+
+      // ─────────────────────────────────────────────
+      // TEXT SPRITES  (lightweight alternative to TextGeometry)
+      // We draw each word onto a canvas and use it as a sprite texture.
+      // This avoids requiring a JSON font file.
+      // ─────────────────────────────────────────────
+      const spriteCache = {};
+
+      function makeTextSprite(word, r, g, b) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 128;
+        canvas.height = 32;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, 128, 32);
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.font = "16px serif";
+        ctx.fillText(word, 2, 20);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const mat = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          depthWrite: false,
+        });
+        const sprite = new THREE.Sprite(mat);
+        sprite.scale.set(12, 3, 1); // world-space size of the sprite
+        return sprite;
+      }
+
+      // ─────────────────────────────────────────────
+      // SEEDED PSEUDO-RANDOM  (mirrors p5's randomSeed(11))
+      // We need deterministic random so the tree looks the same every frame.
+      // ─────────────────────────────────────────────
+      let seed = 11;
+      function seededRandom() {
+        // Simple LCG (same seed → same sequence every call)
+        seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+        return (seed >>> 0) / 0xffffffff;
+      }
+      function seededRange(lo, hi) {
+        return lo + seededRandom() * (hi - lo);
+      }
+
+      // ─────────────────────────────────────────────
+      // BUILD THE TREE  (mirrors branch() recursion)
+      // In p5, transforms are applied in-place and push/pop saves the stack.
+      // In Three.js, we build a hierarchy of Group objects instead.
+      // Each Group IS the "push/pop" context.
+      // ─────────────────────────────────────────────
+      function buildBranch(len, iteration) {
+        const group = new THREE.Group();
+
+        // --- stroke weight ---
+        const strWgt = THREE.MathUtils.mapLinear(len, 10, 100, 0.5, 4);
+
+        // --- draw the line (cylinder) ---
+        let lineLen;
+        let lineOffsetY; // where to translate after the line
+        if (iteration < 1) {
+          lineLen = (len / 3) * 2;
+          lineOffsetY = (len / 3) * 2;
+        } else if (iteration < 2) {
+          lineLen = (len / 3) * 2;
+          lineOffsetY = (len / 3) * 2;
+        } else {
+          lineLen = len + 2;
+          lineOffsetY = len;
+        }
+
+        // CylinderGeometry(radiusTop, radiusBottom, height, segments)
+        const cylGeo = new THREE.CylinderGeometry(
+          strWgt * 0.03,
+          strWgt * 0.05,
+          lineLen,
+          5,
+        );
+        const cylMat = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(66 / 255, 53 / 255, 33 / 255),
+        });
+        const cyl = new THREE.Mesh(cylGeo, cylMat);
+        // Cylinder sits at Y=0 centred; shift so it starts at origin and goes UP
+        cyl.position.y = lineLen / 2;
+        group.add(cyl);
+
+        // Group that represents the "translated" pivot after the line
+        const pivot = new THREE.Group();
+        pivot.position.y = lineOffsetY; // p5's translate(0, -len, 0) → move up in Three.js
+        group.add(pivot);
+
+        if (len > 10) {
+          // 4 sub-branches, each rotated 72° around Y
+          for (let i = 0; i < 4; i++) {
+            const branchGroup = new THREE.Group();
+            branchGroup.rotation.y = THREE.MathUtils.degToRad(72 * i); // rotateY(72) each iteration
+
+            const tiltGroup = new THREE.Group();
+            const tiltAngle = seededRange(30, 50);
+            tiltGroup.rotation.z = THREE.MathUtils.degToRad(tiltAngle); // rotateZ(random(30,50))
+
+            tiltGroup.add(buildBranch(len * 0.5, iteration + 1));
+            branchGroup.add(tiltGroup);
+            pivot.add(branchGroup);
+          }
+        } else {
+          // LEAF: a word sprite
+          const r = Math.round(200 + seededRange(-20, 20));
+          const g = Math.round(130 + seededRange(-20, 20));
+          const b = Math.round(20 + seededRange(-20, 20));
+
+          const word = randomWord();
+          const sprite = makeTextSprite(word, r, g, b);
+
+          // p5: translate(5,0,0) rotateY(random 60-120) rotateX(180)
+          sprite.position.x = 5;
+          sprite.position.y = 0;
+          sprite.position.z = 0;
+
+          pivot.add(sprite);
+        }
+
+        return group;
+      }
+
+      // ─────────────────────────────────────────────
+      // GROUND  (mirrors ground())
+      // ─────────────────────────────────────────────
+      function buildGround() {
+        const group = new THREE.Group();
+        for (let i = 0; i < 500; i++) {
+          const r = Math.round(170 + seededRange(-20, 20));
+          const g = Math.round(120 + seededRange(-20, 20));
+          const b = Math.round(20 + seededRange(-20, 20));
+
+          const sprite = makeTextSprite(randomWord(), r, g, b);
+          sprite.scale.set(10, 2.5, 1);
+
+          // p5: translate(random(-100,100), 0, random(-100,100))
+          sprite.position.x = seededRange(-100, 100);
+          sprite.position.y = 0;
+          sprite.position.z = seededRange(-100, 100);
+
+          group.add(sprite);
+        }
+        return group;
+      }
+
+      // ─────────────────────────────────────────────
+      // ASSEMBLE SCENE
+      // ─────────────────────────────────────────────
+
+      // Tree root group  (p5 starts at y=0; we keep y=0 in Three.js too)
+      const treeRoot = new THREE.Group();
+      seed = 11; // reset seed before building (mirrors randomSeed(11) in draw())
+      treeRoot.add(buildBranch(200, 0));
+      scene.add(treeRoot);
+
+      // Ground
+      seed = 11;
+      const groundGroup = buildGround();
+      scene.add(groundGroup);
+
+      // ─────────────────────────────────────────────
+      // AUTO-ROTATION
+      // ─────────────────────────────────────────────
+      let autoRotate = false;
+      let angle = 0;
+      const angleInc = 0.1; // degrees per frame, matches p5 sketch
+
+      // ─────────────────────────────────────────────
+      // UI BUTTONS
+      // ─────────────────────────────────────────────
+      document
+        .getElementById("btn0")
+        .addEventListener("click", () => switchCamera(0));
+      document
+        .getElementById("btn1")
+        .addEventListener("click", () => switchCamera(1));
+      document
+        .getElementById("btn2")
+        .addEventListener("click", () => switchCamera(2));
+      document.getElementById("btnAuto").addEventListener("click", () => {
+        autoRotate = !autoRotate;
+        document.getElementById("btnAuto").textContent = autoRotate
+          ? "⏸ Pausa"
+          : "⟳ Rotar";
+      });
+
+      // Double-click cycles camera (mirrors doubleClicked in p5)
+      renderer.domElement.addEventListener("dblclick", () => {
+        switchCamera((activeCameraIndex + 1) % 3);
+      });
+
+      // ─────────────────────────────────────────────
+      // RESIZE
+      // ─────────────────────────────────────────────
+      window.addEventListener("resize", () => {
+        cameras.forEach((c) => {
+          c.aspect = window.innerWidth / window.innerHeight;
+          c.updateProjectionMatrix();
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // ─────────────────────────────────────────────
+      // RENDER LOOP  (mirrors draw())
+      // ─────────────────────────────────────────────
+      function animate() {
+        requestAnimationFrame(animate);
+
+        if (autoRotate) {
+          angle += angleInc;
+          treeRoot.rotation.y = THREE.MathUtils.degToRad(angle);
+          groundGroup.rotation.y = THREE.MathUtils.degToRad(angle);
+        }
+
+        controls.update();
+        renderer.render(scene, activeCamera());
+      }
+
+      animate();
+    </script>
+  </body>
+</html>

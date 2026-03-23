@@ -8,7 +8,7 @@ let fontTree;
 let textTree;
 let fullTxt_tree;
 let words = [];
-let txtFile = "sombra.txt";
+let txtFile = "3.txt";
 
 function preload() {
   // font = loadFont('./assets/IBMPlexSerif-Regular.otf');
