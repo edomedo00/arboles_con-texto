@@ -3,13 +3,13 @@ let cam2;
 let cam3;
 let isDefaultCamera = 0;
 let angle = 0;
-let angleIncrement = 0.1;
+let angleIncrement = 0.05;
 let fontTree;
 let textTree;
 let fullTxt_tree;
 let text_trunk;
 let words = [];
-let txtFile = "copa.txt";
+let txtFile = "2.txt";
 
 // SLIDERS
 // let leavesDistSl; let leavesDist;
@@ -41,16 +41,20 @@ function setup() {
   fill("rgb(34, 34, 34)");
 
   cam2 = createCamera();
-  cam2.setPosition(150, -250, 170);
-  cam2.lookAt(-30, -80, -0);
+  cam2.setPosition(110, -256, 205);
+  cam2.lookAt(-70, -86, 36);
 
   cam3 = createCamera();
-  cam3.setPosition(80, -0, 240);
-  cam3.lookAt(-60, -190, -100);
+  cam3.setPosition(20, -4, 273);
+  cam3.lookAt(-107, -198, -76);
+
+  cam4 = createCamera();
+  cam4.setPosition(-87, -145, 223);
+  cam4.lookAt(-87, -145, 0);
 
   cam1 = createCamera();
-  cam1.setPosition(-50, -120, 300);
-  cam1.lookAt(-50, -120, 0);
+  cam1.setPosition(-72, -116, 345);
+  cam1.lookAt(-72, -116, 0);
 }
 
 function draw() {
@@ -61,11 +65,12 @@ function draw() {
 
   orbitControl();
 
-  guide();
+  // guide();
   ground();
   branch(200, 0);
 
-  // angle+=angleIncrement;
+  angle += angleIncrement;
+  noCursor();
   // noLoop();
 }
 
@@ -228,6 +233,9 @@ function doubleClicked() {
     setCamera(cam3);
     isDefaultCamera++;
   } else if (isDefaultCamera === 2) {
+    setCamera(cam4);
+    isDefaultCamera++;
+  } else if (isDefaultCamera === 3) {
     setCamera(cam1);
     isDefaultCamera = 0;
   }
@@ -235,10 +243,35 @@ function doubleClicked() {
 }
 
 function resetCameras() {
-  cam1.setPosition(-50, -120, 300, 0, 0, 0);
-  cam1.lookAt(-50, -120, 0);
-  cam2.setPosition(150, -250, 170);
-  cam2.lookAt(-30, -80, -0);
-  cam3.setPosition(80, -0, 240);
-  cam3.lookAt(-60, -190, -100);
+  cam1.setPosition(-72, -116, 345, 0, 0, 0);
+  cam1.lookAt(-72, -116, 0);
+  cam2.setPosition(110, -256, 205);
+  cam2.lookAt(-70, -86, 36);
+  cam3.setPosition(20, -4, 273);
+  cam3.lookAt(-107, -198, -76);
+  cam4.setPosition(-87, -145, 223);
+  cam4.lookAt(-87, -145, 0);
 }
+
+function keyPressed() {
+  if (key === "s") {
+    let cam = _renderer._curCamera; // gets the currently active camera
+
+    console.log("Position:", cam.eyeX, cam.eyeY, cam.eyeZ);
+    console.log("LookAt center:", cam.centerX, cam.centerY, cam.centerZ);
+    console.log("Up vector:", cam.upX, cam.upY, cam.upZ);
+
+    // Ready-to-paste format:
+    console.log(
+      `cam.setPosition(${cam.eyeX.toFixed(1)}, ${cam.eyeY.toFixed(1)}, ${cam.eyeZ.toFixed(1)})`,
+    );
+    console.log(
+      `cam.lookAt(${cam.centerX.toFixed(1)}, ${cam.centerY.toFixed(1)}, ${cam.centerZ.toFixed(1)})`,
+    );
+  }
+}
+
+/*
+Position: -12.678981298391905 -18.9422685827374 316.6414958200022
+tree_1.js:260 LookAt center: -81.76129402868023 -148.32558172685393 0.21607890543646135
+*/

@@ -3,7 +3,7 @@ let cam2;
 let cam3;
 let isDefaultCamera = 0;
 let angle = 0;
-let angleIncrement = 0.1;
+let angleIncrement = 0.05;
 let fontTree;
 let textTree;
 let fullTxt_tree;
@@ -36,31 +36,31 @@ function setup() {
   fill("rgb(34, 34, 34)");
 
   cam2 = createCamera();
-  cam2.setPosition(138, -296, 216);
-  cam2.lookAt(-68, -123, 9);
+  cam2.setPosition(138, -219, 203);
+  cam2.lookAt(-63, -103, 22);
 
   cam3 = createCamera();
-  cam3.setPosition(-17, 1, 135);
-  cam3.lookAt(-67, -252, -37);
+  cam3.setPosition(-3, 35, 164);
+  cam3.lookAt(-88, -252, -31);
 
   cam4 = createCamera();
-  cam4.setPosition(-167, -181, 159);
-  cam4.lookAt(-68, -217, -26);
+  cam4.setPosition(-116, -129, 174);
+  cam4.lookAt(-51, -153, -29);
 
   cam1 = createCamera();
-  cam1.setPosition(-220, -133, 289);
-  cam1.lookAt(-70, -133, -10);
+  cam1.setPosition(-222, -114, 288);
+  cam1.lookAt(-72, -114, -11);
 }
 
 function draw() {
   background("rgb(255, 255, 239)");
 
   rotateY(angle);
-  randomSeed(11);
+  randomSeed(15);
 
   orbitControl();
 
-  guide();
+  // guide();
   ground();
   branch(200, 0);
 
@@ -68,7 +68,7 @@ function draw() {
 }
 
 function branch(len, iteration = -1) {
-  let strWgt = map(len, 10, 100, 0.5, 4);
+  let strWgt = map(len, 10, 100, 0.5, 5);
 
   strokeWeight(strWgt);
   stroke("rgb(66, 53, 33)");
@@ -86,20 +86,21 @@ function branch(len, iteration = -1) {
     translate(0, -len, 0);
   }
 
-  if (len > 10) {
-    for (let i = 0; i < 4; i++) {
-      rotateY(72);
+  if (len > 30) {
+    for (let i = 0; i < 6; i++) {
+      rotateY(60);
       push();
 
-      rotateZ(random(30, 50));
+      rotateZ(random(10, 100));
       branch(len * 0.5, iteration + 1);
 
       pop();
     }
   } else {
-    var r = 200 + random(-20, 20);
-    var g = 130 + random(-20, 20);
-    var b = 20 + random(-20, 20);
+    var r = 90 + random(-30, 30);
+    var g = 6 + random(-30, 30);
+    var b = 80 + random(-30, 30);
+    ("rgb(90, 6, 80)");
 
     fill(r, g, b, 255);
     noStroke();
@@ -110,11 +111,19 @@ function branch(len, iteration = -1) {
 
     // let rectX = random(5, 10);
     // let rectY = random(10, 15);
-    let currWord = random(words);
 
     // rect(0, 0, rectX, rectY);
     textSize(7);
-    text(currWord, 0, 0);
+
+    for (let i = 0; i < 5; i++) {
+      push();
+      let currWord = random(words);
+      rotateX(random(0, 20));
+      // rotateY(random(0, 20));
+      // rotateZ(random(0, 20));
+      text(currWord, random(-15, 15), random(-15, 15));
+      pop();
+    }
 
     pop();
   }
@@ -126,12 +135,12 @@ function ground() {
   for (let i = 0; i < 500; i++) {
     push();
     textSize(6);
-    var r = 170 + random(-20, 20);
-    var g = 120 + random(-20, 20);
-    var b = 20 + random(-20, 20);
+    var r = 90 + random(-30, 30);
+    var g = 6 + random(-30, 30);
+    var b = 80 + random(-30, 30);
 
     fill(r, g, b, 255);
-    translate(random(-100, 100), 0, random(-100, 100));
+    translate(random(-110, 110), 0, random(-110, 110));
     rotateZ(random(-20, 20));
     rotateY(random(-200, 200));
     text(random(words), 0, 0);
@@ -167,14 +176,14 @@ function doubleClicked() {
 }
 
 function resetCameras() {
-  cam1.setPosition(-220, -133, 289, 0, 0, 0);
-  cam1.lookAt(-70, -133, -10);
-  cam2.setPosition(138, -296, 216);
-  cam2.lookAt(-68, -123, 9);
-  cam3.setPosition(-17, 1, 135);
-  cam3.lookAt(-67, -252, -37);
-  cam4.setPosition(-167, -181, 159);
-  cam4.lookAt(-68, -217, -26);
+  cam1.setPosition(-222, -114, 288, 0, 0, 0);
+  cam1.lookAt(-72, -114, -11);
+  cam2.setPosition(138, -219, 203);
+  cam2.lookAt(-63, -103, 22);
+  cam3.setPosition(-3, 35, 164);
+  cam3.lookAt(-88, -252, -31);
+  cam4.setPosition(-116, -129, 174);
+  cam4.lookAt(-51, -153, -29);
 }
 
 function keyPressed() {

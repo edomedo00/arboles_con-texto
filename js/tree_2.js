@@ -3,12 +3,12 @@ let cam2;
 let cam3;
 let isDefaultCamera = 0;
 let angle = 0;
-let angleIncrement = 0.1;
+let angleIncrement = 0.05;
 let fontTree;
 let textTree;
 let fullTxt_tree;
 let words = [];
-let txtFile = "sombra.txt";
+let txtFile = "2.txt";
 
 function preload() {
   // font = loadFont('./assets/IBMPlexSerif-Regular.otf');
@@ -36,20 +36,20 @@ function setup() {
   fill("rgb(34, 34, 34)");
 
   cam2 = createCamera();
-  cam2.setPosition(138, -296, 216);
-  cam2.lookAt(-68, -123, 9);
+  cam2.setPosition(132, -319, 202);
+  cam2.lookAt(-74, -126, 13);
 
   cam3 = createCamera();
   cam3.setPosition(-17, 1, 135);
   cam3.lookAt(-67, -252, -37);
 
   cam4 = createCamera();
-  cam4.setPosition(-167, -181, 159);
-  cam4.lookAt(-68, -217, -26);
+  cam4.setPosition(-155, -181, 133);
+  cam4.lookAt(-69, -213, -27);
 
   cam1 = createCamera();
-  cam1.setPosition(-220, -133, 289);
-  cam1.lookAt(-70, -133, -10);
+  cam1.setPosition(-234, -136, 282);
+  cam1.lookAt(-83, -137, -16);
 }
 
 function draw() {
@@ -167,14 +167,14 @@ function doubleClicked() {
 }
 
 function resetCameras() {
-  cam1.setPosition(-220, -133, 289, 0, 0, 0);
-  cam1.lookAt(-70, -133, -10);
-  cam2.setPosition(138, -296, 216);
-  cam2.lookAt(-68, -123, 9);
+  cam1.setPosition(-234, -136, 282, 0, 0, 0);
+  cam1.lookAt(-83, -137, -16);
+  cam2.setPosition(132, -319, 202);
+  cam2.lookAt(-74, -126, 13);
   cam3.setPosition(-17, 1, 135);
   cam3.lookAt(-67, -252, -37);
-  cam4.setPosition(-167, -181, 159);
-  cam4.lookAt(-68, -217, -26);
+  cam4.setPosition(-155, -181, 133);
+  cam4.lookAt(-69, -213, -27);
 }
 
 function keyPressed() {
